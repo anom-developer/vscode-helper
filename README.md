@@ -20,7 +20,7 @@ curl -s https://api.github.com/repos/YOUR_USERNAME/vscode-helper/releases/latest
 ```
 
 ### Manual
-1. Go to [Releases](https://github.com/YOUR_USERNAME/vscode-helper/releases/latest)
+1. Go to [Releases](https://github.com/AceAnomDev/vscode-helper/releases/latest)
 2. Download `vscode-helper-X.Y.Z.vsix`
 3. In VS Code: `Ctrl+Shift+P` → **Extensions: Install from VSIX...**
 
@@ -82,7 +82,6 @@ git clone https://github.com/YOUR_USERNAME/vscode-helper
 cd vscode-helper
 npm install
 ```
-
 
 ---
 
