@@ -1,0 +1,108 @@
+{
+  "name": "vscode-helper",
+  "displayName": "VSCode Helper",
+  "description": "AI-powered code highlighting, suggestions, error detection and fix recommendations",
+  "version": "0.1.0",
+  "publisher": "vscode-helper",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "ai",
+    "linter",
+    "suggestions",
+    "diagnostics",
+    "code quality"
+  ],
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:python",
+    "onLanguage:java",
+    "onLanguage:cpp",
+    "onLanguage:c",
+    "onLanguage:go",
+    "onLanguage:rust"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vscode-helper.analyzeFile",
+        "title": "VSCode Helper: Analyze Current File"
+      },
+      {
+        "command": "vscode-helper.fixAll",
+        "title": "VSCode Helper: Fix All Issues"
+      },
+      {
+        "command": "vscode-helper.showSuggestions",
+        "title": "VSCode Helper: Show Suggestions"
+      }
+    ],
+    "configuration": {
+      "title": "VSCode Helper",
+      "properties": {
+        "vscodeHelper.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable VSCode Helper"
+        },
+        "vscodeHelper.analyzeOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically analyze code on file save"
+        },
+        "vscodeHelper.analyzeOnType": {
+          "type": "boolean",
+          "default": false,
+          "description": "Analyze code as you type (may slow down editor)"
+        },
+        "vscodeHelper.severity": {
+          "type": "string",
+          "default": "warning",
+          "enum": ["error", "warning", "information", "hint"],
+          "description": "Minimum severity level to show diagnostics"
+        }
+      }
+    },
+    "menus": {
+      "editor/context": [
+        {
+          "command": "vscode-helper.analyzeFile",
+          "group": "vscode-helper"
+        },
+        {
+          "command": "vscode-helper.showSuggestions",
+          "group": "vscode-helper"
+        }
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/vscode-helper.git"
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "node ./out/test/runTest.js",
+    "lint": "eslint src --ext ts",
+    "package": "vsce package --no-dependencies",
+    "release": "node scripts/release.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.3.0"
+  }
+}
