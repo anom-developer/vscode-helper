@@ -2,7 +2,7 @@
 
 > AI-style code linting, intelligent suggestions, error detection and fix recommendations — built into VS Code as a lightweight extension.
 
-![Build](https://github.com/AceAnomDev/vscode-helper/actions/workflows/release.yml/badge.svg)
+[![CI](https://github.com/AceAnomDev/vscode-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/AceAnomDev/vscode-helper/actions/workflows/ci.yml)
 ![Version](https://img.shields.io/github/v/release/AceAnomDev/vscode-helper)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
