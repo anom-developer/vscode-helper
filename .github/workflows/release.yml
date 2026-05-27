@@ -28,7 +28,7 @@ jobs:
       - name: Package extension
         run: |
           VERSION=${GITHUB_REF_NAME#v}
-          npx vsce package --no-dependencies -o "vscode-helper-${VERSION}.vsix"
+          npx @vscode/vsce package --no-dependencies -o "vscode-helper-${VERSION}.vsix"
           echo "VSIX_PATH=vscode-helper-${VERSION}.vsix" >> $GITHUB_ENV
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
