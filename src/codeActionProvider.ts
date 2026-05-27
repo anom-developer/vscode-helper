@@ -33,12 +33,14 @@ export class HelperCodeActionProvider implements vscode.CodeActionProvider {
 
       if (issue.suggestion) {
         const infoAction = new vscode.CodeAction(
-          `💡 How to fix: ${issue.suggestion}`,
+          `💡 How to fix: ${issue.code}`,
           vscode.CodeActionKind.Empty
         );
+        // ⚠️ BUG FIX: removed broken vscode.open command with empty arguments.
+        // Instead show the suggestion inline via a showInformationMessage command.
         infoAction.command = {
-          command: 'vscode.open',
-          title: 'Open docs',
+          command: 'vscode-helper.showSuggestions',
+          title: `💡 ${issue.suggestion}`,
           arguments: []
         };
         actions.push(infoAction);

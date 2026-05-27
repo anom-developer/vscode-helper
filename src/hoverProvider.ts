@@ -18,32 +18,56 @@ export class HelperHoverProvider implements vscode.HoverProvider {
     position: vscode.Position
   ): vscode.Hover | undefined {
 
-    // Check if hovering over a known keyword
+    const lineText = document.lineAt(position.line).text;
+
+    // ⚠️ BUG FIX: previously checked word === keyword OR line.includes(keyword),
+    // the second branch caused every hover anywhere on a line with "var"/"TODO"/etc.
+    // to fire — even unrelated positions. Now we only match if the hovered word
+    // exactly matches the keyword, or the keyword is a multi-word token and the
+    // cursor is inside the token range.
     const wordRange = document.getWordRangeAtPosition(position);
     const word = wordRange ? document.getText(wordRange) : '';
 
-    for (const [keyword, doc] of Object.entries(HOVER_DOCS)) {
-      if (word === keyword || document.lineAt(position.line).text.includes(keyword)) {
-        const md = new vscode.MarkdownString();
-        md.appendMarkdown(`### 🛠 VSCode Helper\n\n${doc}`);
-        md.isTrusted = true;
+    let matchedDoc: string | undefined;
 
-        // Also show any active diagnostics for this line
-        const issues = analyzeDocument(document).filter(
-          (i) => i.line === position.line
-        );
-        if (issues.length > 0) {
-          md.appendMarkdown('\n\n---\n\n**Issues on this line:**\n');
-          for (const issue of issues) {
-            md.appendMarkdown(`\n- ${issue.message}`);
-            if (issue.suggestion) {
-              md.appendMarkdown(`\n  > 💡 ${issue.suggestion}`);
-            }
+    for (const [keyword, doc] of Object.entries(HOVER_DOCS)) {
+      // Single-token keyword: only match when the hovered word is exactly the keyword
+      if (!keyword.includes('.') && !keyword.includes(':') && !keyword.includes('=')) {
+        if (word === keyword) {
+          matchedDoc = doc;
+          break;
+        }
+      } else {
+        // Multi-char tokens (==, console.log, except:): check if the cursor sits
+        // within the keyword occurrence on this line.
+        const idx = lineText.indexOf(keyword);
+        if (idx !== -1 && position.character >= idx && position.character <= idx + keyword.length) {
+          matchedDoc = doc;
+          break;
+        }
+      }
+    }
+
+    if (matchedDoc) {
+      const md = new vscode.MarkdownString();
+      md.appendMarkdown(`### 🛠 VSCode Helper\n\n${matchedDoc}`);
+      md.isTrusted = true;
+
+      // Also show any active diagnostics for this line
+      const issues = analyzeDocument(document).filter(
+        (i) => i.line === position.line
+      );
+      if (issues.length > 0) {
+        md.appendMarkdown('\n\n---\n\n**Issues on this line:**\n');
+        for (const issue of issues) {
+          md.appendMarkdown(`\n- ${issue.message}`);
+          if (issue.suggestion) {
+            md.appendMarkdown(`\n  > 💡 ${issue.suggestion}`);
           }
         }
-
-        return new vscode.Hover(md);
       }
+
+      return new vscode.Hover(md);
     }
 
     // Fallback: show diagnostics for hovered line
