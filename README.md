@@ -1,4 +1,4 @@
-# 🛠 VSCode Helper
+# 🛠 vscode-helper
 
 > AI-style code linting, intelligent suggestions, error detection and fix recommendations — built into VS Code as a lightweight extension.
 
@@ -13,7 +13,7 @@
 ### One-liner (recommended)
 ```bash
 # Download latest release and install
-curl -s https://api.github.com/repos/YOUR_USERNAME/vscode-helper/releases/latest \
+curl -s https://api.github.com/repos/AceAnomDev/vscode-helper/releases/latest \
   | grep "browser_download_url.*vsix" \
   | cut -d '"' -f 4 \
   | xargs -I {} sh -c 'curl -L "{}" -o vscode-helper.vsix && code --install-extension vscode-helper.vsix'
@@ -78,10 +78,11 @@ curl -s https://api.github.com/repos/YOUR_USERNAME/vscode-helper/releases/latest
 ### First-time setup
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/vscode-helper
+git clone https://github.com/AceAnomDev/vscode-helper
 cd vscode-helper
 npm install
 ```
+
 
 ---
 
