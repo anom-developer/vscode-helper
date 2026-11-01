@@ -1,11 +1,24 @@
-# 🛠 VSCode Helper
+<div align="center">
 
-> **Умный помощник для VS Code**: подсветка проблем, подсказки лучших практик, обнаружение ошибок и автоматическое исправление кода (Quick Fix) для **JavaScript, TypeScript, Python, Java, C/C++, Go, Rust**.
+<img src="icon.png" width="96" height="96" alt="VSCode Helper Logo" />
+
+# 🛠️ VSCode Helper
+
+**Умный помощник для VS Code**: подсветка проблем, подсказки лучших практик, обнаружение ошибок и автоматическое исправление кода (Quick Fix) в один клик.
 
 [![CI](https://github.com/anom-developer/vscode-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/anom-developer/vscode-helper/actions/workflows/ci.yml)
-![Version](https://img.shields.io/badge/version-0.2.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![VS Code](https://img.shields.io/badge/VS%20Code-^1.85.0-007acc)
+[![Version](https://img.shields.io/badge/version-0.2.0-007acc.svg?style=flat-square)](package.json)
+[![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.85.0-007acc?style=flat-square&logo=visualstudiocode&logoColor=white)](https://code.visualstudio.com/)
+[![Languages](https://img.shields.io/badge/languages-JS%20%7C%20TS%20%7C%20Python%20%7C%20Java%20%7C%20C%2FC%2B%2B%20%7C%20Go%20%7C%20Rust-blueviolet?style=flat-square)](#-поддерживаемые-языки-и-правила-rules)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
+
+<br/>
+
+<a href="#-возможности-features">
+  <img src="media/demo.svg" alt="VSCode Helper Live Diagnostics and QuickFix Demo" width="100%" />
+</a>
+
+</div>
 
 ---
 
