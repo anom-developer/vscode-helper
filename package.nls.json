@@ -1,0 +1,20 @@
+{
+  "command.analyzeFile": "VSCode Helper: Analyze Current File",
+  "command.fixAll": "VSCode Helper: Fix All Issues in File",
+  "command.showSuggestions": "VSCode Helper: Show Suggestions List",
+  "command.toggle": "VSCode Helper: Toggle Enable/Disable",
+  "command.clear": "VSCode Helper: Clear Diagnostics & Highlights",
+  "command.showStats": "VSCode Helper: Show File Analysis Summary",
+  "command.explainRule": "VSCode Helper: Explain Rule",
+  "config.title": "VSCode Helper",
+  "config.enable": "Enable or disable VSCode Helper",
+  "config.analyzeOnSave": "Automatically analyze code when a file is saved",
+  "config.analyzeOnType": "Analyze code live as you type (debounced by 300ms)",
+  "config.severity": "Minimum severity level to show in diagnostics",
+  "config.showDecorations": "Highlight issues visually in the code editor with subtle borders and ruler markers",
+  "config.showStatusBar": "Show helper status and issue count in the VS Code status bar",
+  "config.maxLineLength": "Maximum line length threshold before triggering long-line hints",
+  "config.disabledRules": "List of rule IDs to disable globally",
+  "config.language": "Interface and diagnostics language (auto, ru, en)"
+}
+

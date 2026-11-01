@@ -1,96 +1,216 @@
 {
   "name": "vscode-helper",
   "displayName": "VSCode Helper",
-  "description": "AI-powered code highlighting, suggestions, error detection and fix recommendations",
-  "version": "0.1.0",
-  "publisher": "AceAnomDev",
+  "description": "Smart code highlighting, suggestions, error detection and auto-fix recommendations for JavaScript, TypeScript, Python, Java, C/C++, Go, and Rust",
+  "version": "0.2.0",
+  "publisher": "anom-developer",
+  "author": "anom-developer",
+  "icon": "icon.png",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
     "Linters",
+    "Programming Languages",
+    "Snippets",
     "Other"
   ],
   "keywords": [
-    "ai",
     "linter",
+    "helper",
     "suggestions",
     "diagnostics",
-    "code quality"
+    "quickfix",
+    "autofix",
+    "code quality",
+    "clean code",
+    "javascript",
+    "typescript",
+    "python"
   ],
   "activationEvents": [
     "onLanguage:javascript",
     "onLanguage:typescript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescriptreact",
     "onLanguage:python",
     "onLanguage:java",
     "onLanguage:cpp",
     "onLanguage:c",
     "onLanguage:go",
-    "onLanguage:rust"
+    "onLanguage:rust",
+    "onLanguage:json",
+    "onLanguage:html",
+    "onLanguage:css",
+    "onLanguage:markdown"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "vscode-helper.analyzeFile",
-        "title": "VSCode Helper: Analyze Current File"
+        "title": "%command.analyzeFile%",
+        "category": "VSCode Helper"
       },
       {
         "command": "vscode-helper.fixAll",
-        "title": "VSCode Helper: Fix All Issues"
+        "title": "%command.fixAll%",
+        "category": "VSCode Helper"
       },
       {
         "command": "vscode-helper.showSuggestions",
-        "title": "VSCode Helper: Show Suggestions"
+        "title": "%command.showSuggestions%",
+        "category": "VSCode Helper"
+      },
+      {
+        "command": "vscode-helper.toggle",
+        "title": "%command.toggle%",
+        "category": "VSCode Helper"
+      },
+      {
+        "command": "vscode-helper.clear",
+        "title": "%command.clear%",
+        "category": "VSCode Helper"
+      },
+      {
+        "command": "vscode-helper.showStats",
+        "title": "%command.showStats%",
+        "category": "VSCode Helper"
+      },
+      {
+        "command": "vscode-helper.explainRule",
+        "title": "%command.explainRule%",
+        "category": "VSCode Helper"
       }
     ],
     "configuration": {
-      "title": "VSCode Helper",
+      "title": "%config.title%",
       "properties": {
         "vscodeHelper.enable": {
           "type": "boolean",
           "default": true,
-          "description": "Enable/disable VSCode Helper"
+          "description": "%config.enable%"
+        },
+        "vscodeHelper.language": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "ru",
+            "en"
+          ],
+          "enumDescriptions": [
+            "Auto-detect from VS Code environment",
+            "Русский язык (Russian)",
+            "English"
+          ],
+          "description": "%config.language%"
         },
         "vscodeHelper.analyzeOnSave": {
           "type": "boolean",
           "default": true,
-          "description": "Automatically analyze code on file save"
+          "description": "%config.analyzeOnSave%"
         },
         "vscodeHelper.analyzeOnType": {
           "type": "boolean",
           "default": false,
-          "description": "Analyze code as you type (may slow down editor)"
+          "description": "%config.analyzeOnType%"
         },
         "vscodeHelper.severity": {
           "type": "string",
-          "default": "warning",
+          "default": "hint",
           "enum": [
             "error",
             "warning",
             "information",
             "hint"
           ],
-          "description": "Minimum severity level to show diagnostics"
+          "enumDescriptions": [
+            "Only show critical errors",
+            "Show errors and warnings",
+            "Show errors, warnings, and informational notices",
+            "Show all diagnostics including hints"
+          ],
+          "description": "%config.severity%"
+        },
+        "vscodeHelper.showDecorations": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.showDecorations%"
+        },
+        "vscodeHelper.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.showStatusBar%"
+        },
+        "vscodeHelper.maxLineLength": {
+          "type": "number",
+          "default": 120,
+          "description": "%config.maxLineLength%"
+        },
+        "vscodeHelper.disabledRules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "%config.disabledRules%"
         }
       }
     },
+    "colors": [
+      {
+        "id": "vscodeHelper.errorBackground",
+        "description": "Background highlight for error severity issues",
+        "defaults": {
+          "dark": "#ff000018",
+          "light": "#ff000018",
+          "highContrast": "#ff000030"
+        }
+      },
+      {
+        "id": "vscodeHelper.warningBackground",
+        "description": "Background highlight for warning severity issues",
+        "defaults": {
+          "dark": "#cca70018",
+          "light": "#cca70018",
+          "highContrast": "#cca70030"
+        }
+      },
+      {
+        "id": "vscodeHelper.infoBackground",
+        "description": "Background highlight for information severity issues",
+        "defaults": {
+          "dark": "#3794ff14",
+          "light": "#3794ff14",
+          "highContrast": "#3794ff30"
+        }
+      }
+    ],
     "menus": {
       "editor/context": [
         {
           "command": "vscode-helper.analyzeFile",
-          "group": "vscode-helper"
+          "group": "vscode-helper@1"
+        },
+        {
+          "command": "vscode-helper.fixAll",
+          "group": "vscode-helper@2"
         },
         {
           "command": "vscode-helper.showSuggestions",
-          "group": "vscode-helper"
+          "group": "vscode-helper@3"
+        },
+        {
+          "command": "vscode-helper.showStats",
+          "group": "vscode-helper@4"
         }
       ]
     }
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/AceAnomDev/vscode-helper.git"
+    "url": "https://github.com/anom-developer/vscode-helper.git"
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -107,13 +227,13 @@
     "@types/vscode": "^1.85.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "@vscode/vsce": "^3.0.0",
     "eslint": "^8.0.0",
-    "typescript": "^5.3.0",
-    "@vscode/vsce": "^3.0.0"
+    "typescript": "^5.3.0"
   },
   "bugs": {
-    "url": "https://github.com/AceAnomDev/vscode-helper/issues"
+    "url": "https://github.com/anom-developer/vscode-helper/issues"
   },
-  "homepage": "https://github.com/AceAnomDev/vscode-helper#readme",
+  "homepage": "https://github.com/anom-developer/vscode-helper#readme",
   "license": "MIT"
 }

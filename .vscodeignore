@@ -7,3 +7,5 @@ scripts/**
 **/*.map
 **/*.ts
 !out/**
+*.vsix
+.eslintrc.json

@@ -1,58 +1,81 @@
 import * as vscode from 'vscode';
-import { analyzeDocument } from './rules';
+import { HelperDiagnosticsProvider } from './diagnosticsProvider';
+import { getMsg } from './i18n';
 
 export class HelperCodeActionProvider implements vscode.CodeActionProvider {
+  private diagnosticsProvider: HelperDiagnosticsProvider;
+
+  constructor(diagnosticsProvider: HelperDiagnosticsProvider) {
+    this.diagnosticsProvider = diagnosticsProvider;
+  }
+
   provideCodeActions(
     document: vscode.TextDocument,
     range: vscode.Range | vscode.Selection,
     context: vscode.CodeActionContext
   ): vscode.CodeAction[] {
-    const actions: vscode.CodeAction[] = [];
+    const config = vscode.workspace.getConfiguration('vscodeHelper');
+    if (!config.get<boolean>('enable', true)) {
+      return [];
+    }
 
-    const issues = analyzeDocument(document);
+    const actions: vscode.CodeAction[] = [];
+    const issues = this.diagnosticsProvider.getIssuesForDocument(document);
+    const msg = getMsg();
 
     for (const issue of issues) {
-      // Only show actions for issues that overlap with the current cursor/selection
       const issueRange = new vscode.Range(issue.line, issue.col, issue.endLine, issue.endCol);
       if (!range.intersection(issueRange)) continue;
 
+      // 1. Auto-fix action
       if (issue.fix) {
-        const action = new vscode.CodeAction(
-          `🔧 Fix: ${issue.code}`,
+        const fixAction = new vscode.CodeAction(
+          msg.actionFix(issue.code),
           vscode.CodeActionKind.QuickFix
         );
-        action.edit = new vscode.WorkspaceEdit();
+        fixAction.edit = new vscode.WorkspaceEdit();
         const lineRange = document.lineAt(issue.line).range;
-        action.edit.replace(document.uri, lineRange, issue.fix);
-        action.diagnostics = context.diagnostics.filter(
+        fixAction.edit.replace(document.uri, lineRange, issue.fix);
+        fixAction.diagnostics = context.diagnostics.filter(
           (d) => d.code === issue.code && d.range.start.line === issue.line
         );
-        action.isPreferred = true;
-        actions.push(action);
+        fixAction.isPreferred = true;
+        actions.push(fixAction);
       }
 
+      // 2. Ignore / Suppress comment action
+      const commentPrefix = document.languageId === 'python' ? '# ' : '// ';
+      const suppressAction = new vscode.CodeAction(
+        msg.actionIgnoreLine(issue.code),
+        vscode.CodeActionKind.QuickFix
+      );
+      suppressAction.edit = new vscode.WorkspaceEdit();
+      const line = document.lineAt(issue.line);
+      const updatedText = `${line.text} ${commentPrefix}vscode-helper-disable-line ${issue.code}`;
+      suppressAction.edit.replace(document.uri, line.range, updatedText);
+      actions.push(suppressAction);
+
+      // 3. Explanation action
       if (issue.suggestion) {
         const infoAction = new vscode.CodeAction(
-          `💡 How to fix: ${issue.code}`,
+          msg.actionExplain(issue.code),
           vscode.CodeActionKind.Empty
         );
-        // ⚠️ BUG FIX: removed broken vscode.open command with empty arguments.
-        // Instead show the suggestion inline via a showInformationMessage command.
         infoAction.command = {
-          command: 'vscode-helper.showSuggestions',
-          title: `💡 ${issue.suggestion}`,
-          arguments: []
+          command: 'vscode-helper.explainRule',
+          title: `Explain ${issue.code}`,
+          arguments: [issue]
         };
         actions.push(infoAction);
       }
     }
 
-    // "Fix All" action
+    // 4. "Fix All" action
     const fixableCount = issues.filter((i) => i.fix).length;
     if (fixableCount > 0) {
       const fixAll = new vscode.CodeAction(
-        `🔧 Fix all ${fixableCount} auto-fixable issue(s)`,
-        vscode.CodeActionKind.QuickFix
+        msg.actionFixAll(fixableCount),
+        vscode.CodeActionKind.SourceFixAll
       );
       fixAll.command = {
         command: 'vscode-helper.fixAll',

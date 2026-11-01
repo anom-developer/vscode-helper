@@ -1,0 +1,20 @@
+{
+  "command.analyzeFile": "VSCode Helper: Анализировать текущий файл",
+  "command.fixAll": "VSCode Helper: Исправить все проблемы в файле",
+  "command.showSuggestions": "VSCode Helper: Показать список подсказок",
+  "command.toggle": "VSCode Helper: Включить/выключить помощник",
+  "command.clear": "VSCode Helper: Очистить подсветку и замечания",
+  "command.showStats": "VSCode Helper: Показать сводку анализа файла",
+  "command.explainRule": "VSCode Helper: Объяснить правило",
+  "config.title": "VSCode Helper",
+  "config.enable": "Включение или отключение VSCode Helper",
+  "config.analyzeOnSave": "Автоматически анализировать код при сохранении файла",
+  "config.analyzeOnType": "Анализировать код на лету при наборе текста (с задержкой 300мс)",
+  "config.severity": "Минимальный уровень серьезности для отображения в диагностике",
+  "config.showDecorations": "Визуально подсвечивать проблемы рамками и метками на полосе прокрутки",
+  "config.showStatusBar": "Отображать статус помощника и количество замечаний в строке состояния",
+  "config.maxLineLength": "Порог максимальной длины строки перед появлением подсказки",
+  "config.disabledRules": "Список идентификаторов правил для глобального отключения",
+  "config.language": "Язык интерфейса и сообщений диагностики (auto, ru, en)"
+}
+

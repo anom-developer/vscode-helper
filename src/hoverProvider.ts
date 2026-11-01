@@ -1,45 +1,76 @@
 import * as vscode from 'vscode';
-import { analyzeDocument } from './rules';
+import { HelperDiagnosticsProvider } from './diagnosticsProvider';
+import { getEffectiveLanguage } from './i18n';
 
-const HOVER_DOCS: Record<string, string> = {
-  'var': '**`var` is function-scoped** and hoisted to the top of its function. This can cause subtle bugs. Prefer `const` for values that never change, `let` for values that do.',
-  'eval': '**`eval()` executes a string as code** — this is a major security risk (XSS, injection) and also prevents JavaScript engine optimisations.',
-  'console.log': '**Debug output** — fine during development, but should be removed or replaced with a logger library before production deployment.',
-  '==': '**Loose equality `==`** performs type coercion, leading to surprising results like `0 == ""` being `true`. Use `===` for predictable comparisons.',
-  'TODO': '**TODO marker** — this code is incomplete or needs attention before release.',
-  'FIXME': '**FIXME marker** — this code is known to be broken or suboptimal.',
-  'HACK': '**HACK marker** — this code is a workaround; consider a proper fix.',
-  'except:': '**Bare except** catches *everything*, including `SystemExit` and `KeyboardInterrupt`. Specify the exception type for safe error handling.',
+const HOVER_DOCS_RU: Record<string, string> = {
+  'var': '**`var` имеет функциональную область видимости** и поднимается (hoisting) в начало функции. Это часто приводит к случайному затенению переменных и скрытым багам. Используйте `const` для неизменяемых значений или `let` при перезаписи.',
+  'eval': '**`eval()` выполняет произвольную строку как код** — это создаёт критическую уязвимость внедрения кода (XSS/RCE) и мешает оптимизациям JIT в JavaScript-движке.',
+  'debugger': '**Инструкция `debugger;`** останавливает выполнение при открытых инструментах разработчика. Её нельзя оставлять в продакшен-коде.',
+  'console.log': '**Отладочный вывод в stdout** — полезен при локальной разработке, но перед релизом должен быть заменён на библиотеку логирования (Winston, Pino) или удален.',
+  '==': '**Нестрогое равенство `==`** выполняет автоматическое приведение типов (например, `0 == ""` истинно). Используйте строгое равенство `===` для надёжного сравнения.',
+  '!=': '**Нестрогое неравенство `!=`** выполняет автоматическое приведение типов. Используйте строгое неравенство `!==`.',
+  'TODO': '**Маркер TODO** указывает на запланированную задачу или незаконченную часть кода, требующую завершения.',
+  'FIXME': '**Маркер FIXME** помечает известные ошибки, краевые случаи или временные хаки, требующие внимания.',
+  'HACK': '**Маркер HACK** помечает временный костыль или обходной путь. Рекомендуется рефакторинг.',
+  'НАДО': '**Маркер НАДО/TODO** указывает на незаконченную задачу в кодовой базе.',
+  'ИСПРАВИТЬ': '**Маркер ИСПРАВИТЬ/FIXME** помечает баг или проблему, требующую исправления.',
+  'except:': '**Пустой `except:`** ловит абсолютно все исключения, включая `SystemExit` и `KeyboardInterrupt`. Указывайте тип: `except Exception:` или конкретный класс ошибки.',
+  'unwrap': '**Метод `.unwrap()` в Rust** вызовет аварийную остановку (panic), если значение равно `Err` или `None`. Используйте оператор `?` или метод `.expect("...")`.'
+};
+
+const HOVER_DOCS_EN: Record<string, string> = {
+  'var': '**`var` is function-scoped** and hoisted to the top of its enclosing function. Prefer `const` for immutable bindings, or `let` when the value is reassigned.',
+  'eval': '**`eval()` executes arbitrary strings as code** — this represents a major security vulnerability (code injection/XSS) and prevents JavaScript JIT optimizations.',
+  'debugger': '**`debugger;` breakpoint statement** halts execution when developer tools are attached. It should never be committed into production code.',
+  'console.log': '**Standard output debug log** — suitable during local development, but should be removed or replaced with an enterprise logger before production deployment.',
+  '==': '**Loose equality `==`** performs automatic type coercion (e.g., `0 == ""` is true). Use strict equality `===` for reliable, type-safe comparisons.',
+  '!=': '**Loose inequality `!=`** performs type coercion. Use strict inequality `!==` instead.',
+  'TODO': '**TODO marker** indicates planned future work or an incomplete implementation that needs to be addressed before release.',
+  'FIXME': '**FIXME marker** highlights known bugs, edge cases, or temporary workarounds that require attention.',
+  'HACK': '**HACK marker** marks non-ideal temporary workarounds; consider refactoring into a robust architecture.',
+  'except:': '**Bare except** catches all exceptions indiscriminately, including `SystemExit` and `KeyboardInterrupt`. Specify exception types (`except Exception:`).',
+  'unwrap': '**Rust `.unwrap()`** will cause a panic if the Result is `Err` or Option is `None`. Prefer error propagation with `?` or `.expect("...")`.'
 };
 
 export class HelperHoverProvider implements vscode.HoverProvider {
+  private diagnosticsProvider: HelperDiagnosticsProvider;
+
+  constructor(diagnosticsProvider: HelperDiagnosticsProvider) {
+    this.diagnosticsProvider = diagnosticsProvider;
+  }
+
   provideHover(
     document: vscode.TextDocument,
     position: vscode.Position
   ): vscode.Hover | undefined {
+    const config = vscode.workspace.getConfiguration('vscodeHelper');
+    if (!config.get<boolean>('enable', true)) {
+      return undefined;
+    }
+
+    const issues = this.diagnosticsProvider.getIssuesForDocument(document);
+    // Find issues that encompass or neighbor the current cursor position
+    const relevantIssues = issues.filter((i) => {
+      const startCol = Math.max(0, i.col - 1);
+      const endCol = i.endCol + 1;
+      return i.line === position.line && position.character >= startCol && position.character <= endCol;
+    });
 
     const lineText = document.lineAt(position.line).text;
-
-    // ⚠️ BUG FIX: previously checked word === keyword OR line.includes(keyword),
-    // the second branch caused every hover anywhere on a line with "var"/"TODO"/etc.
-    // to fire — even unrelated positions. Now we only match if the hovered word
-    // exactly matches the keyword, or the keyword is a multi-word token and the
-    // cursor is inside the token range.
     const wordRange = document.getWordRangeAtPosition(position);
     const word = wordRange ? document.getText(wordRange) : '';
 
+    const isRu = getEffectiveLanguage() === 'ru';
+    const docs = isRu ? HOVER_DOCS_RU : HOVER_DOCS_EN;
     let matchedDoc: string | undefined;
 
-    for (const [keyword, doc] of Object.entries(HOVER_DOCS)) {
-      // Single-token keyword: only match when the hovered word is exactly the keyword
+    for (const [keyword, doc] of Object.entries(docs)) {
       if (!keyword.includes('.') && !keyword.includes(':') && !keyword.includes('=')) {
         if (word === keyword) {
           matchedDoc = doc;
           break;
         }
       } else {
-        // Multi-char tokens (==, console.log, except:): check if the cursor sits
-        // within the keyword occurrence on this line.
         const idx = lineText.indexOf(keyword);
         if (idx !== -1 && position.character >= idx && position.character <= idx + keyword.length) {
           matchedDoc = doc;
@@ -48,40 +79,36 @@ export class HelperHoverProvider implements vscode.HoverProvider {
       }
     }
 
-    if (matchedDoc) {
-      const md = new vscode.MarkdownString();
-      md.appendMarkdown(`### 🛠 VSCode Helper\n\n${matchedDoc}`);
-      md.isTrusted = true;
-
-      // Also show any active diagnostics for this line
-      const issues = analyzeDocument(document).filter(
-        (i) => i.line === position.line
-      );
-      if (issues.length > 0) {
-        md.appendMarkdown('\n\n---\n\n**Issues on this line:**\n');
-        for (const issue of issues) {
-          md.appendMarkdown(`\n- ${issue.message}`);
-          if (issue.suggestion) {
-            md.appendMarkdown(`\n  > 💡 ${issue.suggestion}`);
-          }
-        }
-      }
-
-      return new vscode.Hover(md);
+    if (relevantIssues.length === 0 && !matchedDoc) {
+      return undefined;
     }
 
-    // Fallback: show diagnostics for hovered line
-    const issues = analyzeDocument(document).filter(
-      (i) => i.line === position.line
-    );
-    if (issues.length === 0) return undefined;
-
     const md = new vscode.MarkdownString();
-    md.appendMarkdown('### 🛠 VSCode Helper — Issues on this line\n\n');
-    for (const issue of issues) {
-      md.appendMarkdown(`**${issue.message}**\n\n`);
-      if (issue.suggestion) {
-        md.appendMarkdown(`> 💡 *${issue.suggestion}*\n\n`);
+    md.isTrusted = true;
+    md.supportHtml = true;
+
+    md.appendMarkdown('### 🛠 VSCode Helper\n\n');
+
+    if (matchedDoc) {
+      md.appendMarkdown(`${matchedDoc}\n\n`);
+    }
+
+    if (relevantIssues.length > 0) {
+      if (matchedDoc) {
+        md.appendMarkdown('---\n\n');
+      }
+      for (const issue of relevantIssues) {
+        md.appendMarkdown(`**${issue.message}**\n\n`);
+        if (issue.suggestion) {
+          md.appendMarkdown(`> 💡 *${issue.suggestion}*\n\n`);
+        }
+        if (issue.fix) {
+          const shortcut = process.platform === 'darwin' ? 'Cmd+.' : 'Ctrl+.';
+          const autoFixText = isRu
+            ? `*[Доступно авто-исправление по нажатию ${shortcut}]*`
+            : `*[Auto-fix available via QuickFix ${shortcut}]*`;
+          md.appendMarkdown(`${autoFixText}\n\n`);
+        }
       }
     }
 
