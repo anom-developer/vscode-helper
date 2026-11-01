@@ -15,7 +15,7 @@
 <br/>
 
 <a href="#-возможности-features">
-  <img src="media/demo.svg" alt="VSCode Helper Live Diagnostics and QuickFix Demo" width="100%" />
+  <img src="media/demo.gif" alt="VSCode Helper Live Diagnostics and QuickFix Demo" width="100%" />
 </a>
 
 </div>
